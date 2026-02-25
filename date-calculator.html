@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日期计算器</title>
+    <!-- 使用 lular-javascript 进行农历转换 -->
+    <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.6.12/lunar.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e8f5e9; /* 类似图片的浅绿色背景 */
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background-color: #e8f5e9;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        h1 {
+            text-align: center;
+            color: #2e7d32;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 40px;
+            border-bottom: 1px solid #c8e6c9;
+            padding-bottom: 20px;
+        }
+        .section:last-child {
+            border-bottom: none;
+        }
+        h2 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #000;
+            font-weight: bold;
+        }
+        .input-group {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        input[type="number"] {
+            width: 60px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        select {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            background-color: white;
+        }
+        button {
+            background-color: #e0e0e0;
+            border: 1px solid #999;
+            padding: 5px 15px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #d5d5d5;
+        }
+        .result {
+            margin-top: 15px;
+            font-weight: bold;
+            color: #d32f2f; /* 红色结果 */
+            font-size: 1.1rem;
+        }
+        .label-text {
+            font-size: 16px;
+        }
+        .default-text {
+            color: #666;
+            font-size: 0.9rem;
+            margin-left: 5px;
+        }
+        .footer-note {
+            margin-top: 30px;
+            font-size: 0.9rem;
+            color: #555;
+            line-height: 1.6;
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .footer-note h3 {
+            margin-top: 0;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- 第一部分：计算两个日期之间差多少天 -->
+        <div class="section">
+            <h2>一、计算两个日期之间差多少天</h2>
+            <div class="input-group">
+                <input type="number" id="diff-y1" placeholder="年"> <span class="label-text">年</span>
+                <input type="number" id="diff-m1" placeholder="月"> <span class="label-text">月</span>
+                <input type="number" id="diff-d1" placeholder="日"> <span class="label-text">日</span>
+                <span class="default-text">(默认今天)</span>
+            </div>
+            <div class="input-group">
+                <span class="label-text">距</span>
+                <input type="number" id="diff-y2" placeholder="年"> <span class="label-text">年</span>
+                <input type="number" id="diff-m2" placeholder="月"> <span class="label-text">月</span>
+                <input type="number" id="diff-d2" placeholder="日"> <span class="label-text">日</span>
+            </div>
+            <button id="calc-diff-btn">相差</button>
+            <div id="diff-result" class="result"></div>
+        </div>
+
+        <!-- 第二部分：推算几天后的日期 -->
+        <div class="section">
+            <h2>二、推算几天后的日期</h2>
+            <div class="input-group">
+                <input type="number" id="calc-y" placeholder="年"> <span class="label-text">年</span>
+                <input type="number" id="calc-m" placeholder="月"> <span class="label-text">月</span>
+                <input type="number" id="calc-d" placeholder="日"> <span class="label-text">日</span>
+                <span class="default-text">(默认今天)</span>
+            </div>
+            <div class="input-group">
+                <select id="calc-direction">
+                    <option value="after">往后</option>
+                    <option value="before">往前</option>
+                </select>
+                <input type="number" id="calc-num" value="100">
+                <select id="calc-unit">
+                    <option value="day">日</option>
+                    <option value="week">周</option>
+                    <option value="month">月</option>
+                </select>
+            </div>
+            <button id="calc-date-btn">是</button>
+            <div id="calc-result" class="result"></div>
+        </div>
+
+        <!-- 说明部分 -->
+        <div class="footer-note">
+            <h3>【日期间隔和推算说明】</h3>
+            <p>一、计算两个日期之间相差几天、几周、几个月，前一个日期更晚则结果为负数。</p>
+            <p>二、计算某日往后或者往前若干天、若干星期、若干月的日期，并给出农历日期。</p>
+            <p>* 输入均为阳历，最早有效日期为1901年1月1日。月、日数如果超出范围，则自动调整为正确日期。比如输入11月32日，则调整为12月2日。</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const currentYear = today.getFullYear();
+            const currentMonth = today.getMonth() + 1;
+            const currentDay = today.getDate();
+
+            // 初始化默认值
+            function setDefaults() {
+                document.getElementById('diff-y1').value = currentYear;
+                document.getElementById('diff-m1').value = currentMonth;
+                document.getElementById('diff-d1').value = currentDay;
+                
+                // 默认第二个日期为明年今天
+                document.getElementById('diff-y2').value = currentYear + 1;
+                document.getElementById('diff-m2').value = 1;
+                document.getElementById('diff-d2').value = 1;
+
+                document.getElementById('calc-y').value = currentYear;
+                document.getElementById('calc-m').value = currentMonth;
+                document.getElementById('calc-d').value = currentDay;
+            }
+            setDefaults();
+
+            // 辅助函数：创建日期对象（处理月份从0开始的问题）
+            function createDate(y, m, d) {
+                // new Date(y, m, d) 会自动处理溢出，例如 11月32日 -> 12月2日
+                // 月份需要 -1
+                return new Date(y, m - 1, d);
+            }
+
+            // 辅助函数：格式化日期
+            function formatDate(date) {
+                const y = date.getFullYear();
+                const m = date.getMonth() + 1;
+                const d = date.getDate();
+                const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+                const week = weekDays[date.getDay()];
+                return `${y}年${m}月${d}日 (${week})`;
+            }
+
+            // 辅助函数：获取农历日期
+            function getLunarDate(date) {
+                if (typeof Lunar !== 'undefined') {
+                    try {
+                        const lunar = Lunar.fromDate(date);
+                        return `农历 ${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}`;
+                    } catch (e) {
+                        console.error('Lunar conversion error:', e);
+                        return '';
+                    }
+                }
+                return '';
+            }
+
+            // 功能一：计算日期差
+            document.getElementById('calc-diff-btn').addEventListener('click', function() {
+                const y1 = parseInt(document.getElementById('diff-y1').value) || currentYear;
+                const m1 = parseInt(document.getElementById('diff-m1').value) || currentMonth;
+                const d1 = parseInt(document.getElementById('diff-d1').value) || currentDay;
+
+                const y2 = parseInt(document.getElementById('diff-y2').value) || currentYear;
+                const m2 = parseInt(document.getElementById('diff-m2').value) || currentMonth;
+                const d2 = parseInt(document.getElementById('diff-d2').value) || currentDay;
+
+                const date1 = createDate(y1, m1, d1);
+                const date2 = createDate(y2, m2, d2);
+
+                const diffTime = date2 - date1;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                // 简单计算周数和月数（近似）
+                const weeks = (diffDays / 7).toFixed(1);
+                
+                let resultText = `相差 ${diffDays} 天`;
+                if (Math.abs(diffDays) >= 7) {
+                    resultText += ` (约 ${weeks} 周)`;
+                }
+                
+                document.getElementById('diff-result').textContent = resultText;
+            });
+
+            // 功能二：推算日期
+            document.getElementById('calc-date-btn').addEventListener('click', function() {
+                const y = parseInt(document.getElementById('calc-y').value) || currentYear;
+                const m = parseInt(document.getElementById('calc-m').value) || currentMonth;
+                const d = parseInt(document.getElementById('calc-d').value) || currentDay;
+                
+                const direction = document.getElementById('calc-direction').value;
+                const num = parseInt(document.getElementById('calc-num').value) || 0;
+                const unit = document.getElementById('calc-unit').value;
+
+                let date = createDate(y, m, d);
+                let originalDate = new Date(date); // 备份基准日期
+
+                const multiplier = direction === 'after' ? 1 : -1;
+
+                if (unit === 'day') {
+                    date.setDate(date.getDate() + (num * multiplier));
+                } else if (unit === 'week') {
+                    date.setDate(date.getDate() + (num * 7 * multiplier));
+                } else if (unit === 'month') {
+                    date.setMonth(date.getMonth() + (num * multiplier));
+                }
+
+                const lunarStr = getLunarDate(date);
+                const resultText = `结果：${formatDate(date)} ${lunarStr}`;
+                
+                document.getElementById('calc-result').textContent = resultText;
+            });
+        });
+    </script>
+</body>
+</html>

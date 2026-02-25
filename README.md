@@ -7,6 +7,7 @@
 | 工具名称 | 文件 | 在线使用 | 说明文档 | 描述 |
 | :--- | :--- | :--- | :--- | :--- |
 | **JSON 格式化工具** | [json-formatter.html](./json-formatter.html) | [在线使用](https://ckaesar.github.io/quick-tools/json-formatter.html) | [README](./json-formatter.md) | 一个简单的 JSON 格式化与校验工具，支持错误提示。 |
+| **日期计算器** | [date-calculator.html](./date-calculator.html) | [在线使用](https://ckaesar.github.io/quick-tools/date-calculator.html) | [README](./date-calculator.md) | 一个日期差计算与日期推算工具，支持农历显示。 |
 
 ## 使用说明
 
