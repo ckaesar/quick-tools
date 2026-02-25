@@ -17,3 +17,4 @@
 *   **独立文档**：每个工具必须有一个同名的 Markdown 说明文档（例如 `tool-name.html` 对应 `tool-name.md`）。
     *   文档内容应包含：功能介绍、使用方法、原始需求/提示词。
 *   **索引更新**：每次新增工具后，必须在根目录的 `README.md` 文件中的“工具列表”部分添加相应的链接和描述。
+    *   **在线链接**：必须添加一列“在线使用”，链接格式为 `https://ckaesar.github.io/quick-tools/` + 工具文件名（例如 `https://ckaesar.github.io/quick-tools/tool-name.html`）。
