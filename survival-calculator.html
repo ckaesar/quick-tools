@@ -154,6 +154,10 @@
             <button id="reset-inputs-btn">重置 (重置输入)</button>
         </div>
 
+        <div id="summary-section" style="display: none; margin-bottom: 20px; text-align: center; font-size: 1.2rem; font-weight: bold; color: #e74c3c;">
+            总利息: <span id="total-interest">0</span> | 总余额: <span id="final-balance">0</span>
+        </div>
+
         <div class="result-table-container">
             <table id="result-table">
                 <thead>
@@ -178,6 +182,9 @@
             const expenseInput = document.getElementById('expense');
             const rateInput = document.getElementById('rate');
             const resultTableBody = document.querySelector('#result-table tbody');
+            const summarySection = document.getElementById('summary-section');
+            const totalInterestSpan = document.getElementById('total-interest');
+            const finalBalanceSpan = document.getElementById('final-balance');
 
             // 格式化货币
             function formatCurrency(num) {
@@ -207,6 +214,7 @@
 
                 // 清空现有结果
                 resultTableBody.innerHTML = '';
+                summarySection.style.display = 'none';
 
                 let currentBalance = principal;
                 let currentDate = new Date(); // 从当前月开始
@@ -215,6 +223,7 @@
 
                 // 记录每年的起始余额用于计算利息
                 let yearStartBalance = currentBalance;
+                let totalInterest = 0;
 
                 for (let y = 0; y < years; y++) {
                     // 每年开始时的余额
@@ -254,6 +263,7 @@
                     // 题目原话：“每年底按照年初金额计算利息然后加到总余额中”
                     const interest = yearStartBalance * annualRate;
                     currentBalance += interest;
+                    totalInterest += interest;
 
                     // 插入一行显示年度结算
                     const summaryRow = document.createElement('tr');
@@ -268,11 +278,17 @@
                     // 收益率递减
                     annualRate = annualRate * 0.99;
                 }
+
+                // 显示汇总信息
+                summarySection.style.display = 'block';
+                totalInterestSpan.textContent = formatCurrency(totalInterest);
+                finalBalanceSpan.textContent = formatCurrency(currentBalance);
             });
 
             // 清空列表
             document.getElementById('clear-list-btn').addEventListener('click', function() {
                 resultTableBody.innerHTML = '';
+                summarySection.style.display = 'none';
             });
 
             // 重置输入 (重置)
@@ -283,6 +299,9 @@
                 rateInput.value = '';
                 // 也可以选择是否同时清空列表，根据需求“点击重置 则清空输入参数的值”，没说清空列表，但通常重置输入后列表也该清空？
                 // 严格按需求：只清空输入。
+                // 如果用户希望重置时也清空结果，可以取消下面两行的注释
+                // resultTableBody.innerHTML = '';
+                // summarySection.style.display = 'none';
             });
         });
     </script>
