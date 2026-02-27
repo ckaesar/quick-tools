@@ -151,7 +151,7 @@
         <div class="controls">
             <button id="calc-btn">计算</button>
             <button id="clear-list-btn">清空列表</button>
-            <button id="reset-inputs-btn">充值 (重置输入)</button>
+            <button id="reset-inputs-btn">重置 (重置输入)</button>
         </div>
 
         <div class="result-table-container">
@@ -259,7 +259,7 @@
                     const summaryRow = document.createElement('tr');
                     summaryRow.classList.add('year-summary');
                     summaryRow.innerHTML = `
-                        <td colspan="2">年度结算 (年收益率: ${(annualRate * 100).toFixed(2)}%)</td>
+                        <td colspan="2">第 ${y + 1} 年年度结算 (年收益率: ${(annualRate * 100).toFixed(2)}%)</td>
                         <td class="${currentBalance < 0 ? 'negative-balance' : ''}">${formatCurrency(currentBalance)}</td>
                         <td>利息收入: ${formatCurrency(interest)}</td>
                     `;
@@ -275,13 +275,13 @@
                 resultTableBody.innerHTML = '';
             });
 
-            // 重置输入 (充值)
+            // 重置输入 (重置)
             document.getElementById('reset-inputs-btn').addEventListener('click', function() {
                 principalInput.value = '';
                 yearsInput.value = '';
                 expenseInput.value = '';
                 rateInput.value = '';
-                // 也可以选择是否同时清空列表，根据需求“点击充值 则清空输入参数的值”，没说清空列表，但通常重置输入后列表也该清空？
+                // 也可以选择是否同时清空列表，根据需求“点击重置 则清空输入参数的值”，没说清空列表，但通常重置输入后列表也该清空？
                 // 严格按需求：只清空输入。
             });
         });
