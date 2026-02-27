@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生存计算器</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        .input-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .input-group label {
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        .input-group input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .input-group input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        button {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-weight: 600;
+        }
+        #calc-btn {
+            background-color: #3498db;
+            color: white;
+        }
+        #calc-btn:hover {
+            background-color: #2980b9;
+        }
+        #clear-list-btn {
+            background-color: #e67e22;
+            color: white;
+        }
+        #clear-list-btn:hover {
+            background-color: #d35400;
+        }
+        #reset-inputs-btn {
+            background-color: #95a5a6;
+            color: white;
+        }
+        #reset-inputs-btn:hover {
+            background-color: #7f8c8d;
+        }
+        .result-table-container {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .negative-balance {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .year-summary {
+            background-color: #e8f6f3;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>生存计算器</h1>
+        
+        <div class="input-section">
+            <div class="input-group">
+                <label for="principal">初始本金 (元)</label>
+                <input type="number" id="principal" placeholder="例如：1000000" min="0">
+            </div>
+            <div class="input-group">
+                <label for="years">生存年数</label>
+                <input type="number" id="years" placeholder="例如：30" min="1">
+            </div>
+            <div class="input-group">
+                <label for="expense">每月开销 (元)</label>
+                <input type="number" id="expense" placeholder="例如：5000" min="0">
+            </div>
+            <div class="input-group">
+                <label for="rate">初始年化收益率 (%)</label>
+                <input type="number" id="rate" placeholder="例如：4.0" step="0.1">
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="calc-btn">计算</button>
+            <button id="clear-list-btn">清空列表</button>
+            <button id="reset-inputs-btn">充值 (重置输入)</button>
+        </div>
+
+        <div class="result-table-container">
+            <table id="result-table">
+                <thead>
+                    <tr>
+                        <th>月份</th>
+                        <th>每月开销 (元)</th>
+                        <th>总余额 (元)</th>
+                        <th>备注</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- 结果将插入这里 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const principalInput = document.getElementById('principal');
+            const yearsInput = document.getElementById('years');
+            const expenseInput = document.getElementById('expense');
+            const rateInput = document.getElementById('rate');
+            const resultTableBody = document.querySelector('#result-table tbody');
+
+            // 格式化货币
+            function formatCurrency(num) {
+                return new Intl.NumberFormat('zh-CN', { style: 'currency', currency: 'CNY' }).format(num);
+            }
+
+            // 获取当前月份格式化字符串 (YYYY-MM)
+            function getMonthString(date) {
+                const year = date.getFullYear();
+                const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                return `${year}-${month}`;
+            }
+
+            // 计算逻辑
+            document.getElementById('calc-btn').addEventListener('click', function() {
+                // 获取输入值
+                const principal = parseFloat(principalInput.value);
+                const years = parseInt(yearsInput.value);
+                const expense = parseFloat(expenseInput.value);
+                let annualRate = parseFloat(rateInput.value) / 100; // 转换为小数
+
+                // 验证输入
+                if (isNaN(principal) || isNaN(years) || isNaN(expense) || isNaN(annualRate)) {
+                    alert('请输入所有必要的数值参数！');
+                    return;
+                }
+
+                // 清空现有结果
+                resultTableBody.innerHTML = '';
+
+                let currentBalance = principal;
+                let currentDate = new Date(); // 从当前月开始
+                // 设置为当月1号，避免日期溢出问题
+                currentDate.setDate(1);
+
+                // 记录每年的起始余额用于计算利息
+                let yearStartBalance = currentBalance;
+
+                for (let y = 0; y < years; y++) {
+                    // 每年开始时的余额
+                    yearStartBalance = currentBalance;
+                    
+                    for (let m = 0; m < 12; m++) {
+                        // 每月扣除开销
+                        currentBalance -= expense;
+
+                        // 创建行数据
+                        const row = document.createElement('tr');
+                        const monthCell = document.createElement('td');
+                        const expenseCell = document.createElement('td');
+                        const balanceCell = document.createElement('td');
+                        const noteCell = document.createElement('td');
+
+                        monthCell.textContent = getMonthString(currentDate);
+                        expenseCell.textContent = formatCurrency(expense);
+                        
+                        balanceCell.textContent = formatCurrency(currentBalance);
+                        if (currentBalance < 0) {
+                            balanceCell.classList.add('negative-balance');
+                        }
+
+                        row.appendChild(monthCell);
+                        row.appendChild(expenseCell);
+                        row.appendChild(balanceCell);
+                        row.appendChild(noteCell);
+                        resultTableBody.appendChild(row);
+
+                        // 增加一个月
+                        currentDate.setMonth(currentDate.getMonth() + 1);
+                    }
+
+                    // 年底计算利息：基于年初余额 * 当前年利率
+                    // 注意：如果余额已经为负数，通常不应该再产生正向利息，这里假设只要年初是正数就产生利息，或者严格按照题目要求“年初金额计算利息”
+                    // 题目原话：“每年底按照年初金额计算利息然后加到总余额中”
+                    const interest = yearStartBalance * annualRate;
+                    currentBalance += interest;
+
+                    // 插入一行显示年度结算
+                    const summaryRow = document.createElement('tr');
+                    summaryRow.classList.add('year-summary');
+                    summaryRow.innerHTML = `
+                        <td colspan="2">年度结算 (年收益率: ${(annualRate * 100).toFixed(2)}%)</td>
+                        <td class="${currentBalance < 0 ? 'negative-balance' : ''}">${formatCurrency(currentBalance)}</td>
+                        <td>利息收入: ${formatCurrency(interest)}</td>
+                    `;
+                    resultTableBody.appendChild(summaryRow);
+
+                    // 收益率递减
+                    annualRate = annualRate * 0.99;
+                }
+            });
+
+            // 清空列表
+            document.getElementById('clear-list-btn').addEventListener('click', function() {
+                resultTableBody.innerHTML = '';
+            });
+
+            // 重置输入 (充值)
+            document.getElementById('reset-inputs-btn').addEventListener('click', function() {
+                principalInput.value = '';
+                yearsInput.value = '';
+                expenseInput.value = '';
+                rateInput.value = '';
+                // 也可以选择是否同时清空列表，根据需求“点击充值 则清空输入参数的值”，没说清空列表，但通常重置输入后列表也该清空？
+                // 严格按需求：只清空输入。
+            });
+        });
+    </script>
+</body>
+</html>
